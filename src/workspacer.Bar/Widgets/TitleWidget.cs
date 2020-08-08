@@ -13,6 +13,13 @@ namespace workspacer.Bar.Widgets
         public string NoWindowMessage { get; set; } = "No Windows";
        
 
+        /// <summary>
+        /// Offset to limit space taken up by titles
+        /// increase offset to make space for other widgets on left/right sections
+        /// TODO: check if can source widths of other widgets in section
+        /// </summary>
+        public int OtherWidgetOffset { get; set; } = 80;
+
         public override IBarWidgetPart[] GetParts()
         {
             var window = GetWindow();
@@ -29,9 +36,11 @@ namespace workspacer.Bar.Widgets
                 else 
                 {
                         string ShortTitle = window.Title.Split("-").Last();
-                        return Parts(Part(ShortTitle, color, fontname: FontName));
+                        //return Parts(Part(ShortTitle, color, fontname: FontName));
+                        return Parts(GetWindowTitles(color));
                 }
-            } else
+            }
+            else
             {
                 return Parts(Part(NoWindowMessage, color, fontname: FontName));
             }
@@ -49,8 +58,42 @@ namespace workspacer.Bar.Widgets
         {
             var currentWorkspace = Context.WorkspaceContainer.GetWorkspaceForMonitor(Context.Monitor);
             return currentWorkspace.FocusedWindow ??
-                   currentWorkspace.LastFocusedWindow ??
-                   currentWorkspace.ManagedWindows.FirstOrDefault();
+                currentWorkspace.LastFocusedWindow ??
+                currentWorkspace.ManagedWindows.FirstOrDefault();
+        }
+
+        private IBarWidgetPart[] GetWindowTitles(Color color)
+        {
+            var currentWorkspace = Context.WorkspaceContainer.GetWorkspaceForMonitor(Context.Monitor);
+            var focusedWindow = currentWorkspace.FocusedWindow ??
+                currentWorkspace.LastFocusedWindow ??
+                currentWorkspace.ManagedWindows.FirstOrDefault();
+
+            // TODO: feed callback that switches to that window from context
+            // TODO: implement focus window given int
+            // TODO: match on window title
+            var managedWindows = currentWorkspace.ManagedWindows;
+            return managedWindows
+                .Select((window) => (window.Handle == focusedWindow?.Handle))
+                .Zip(managedWindows,
+                    (isFocused, window) => Part(
+                        getTitleString(window.Title),
+                        isFocused ? color : Color.Gray,
+                        maxWidth: getTitleMaxWidth()))
+                .ToArray();
+        }
+
+        private int getTitleMaxWidth()
+        {
+            var focusedMonitor = Context.MonitorContainer.FocusedMonitor;
+            var monitorWidth = focusedMonitor.Width;
+            var nWindows = Context.WorkspaceContainer.GetWorkspaceForMonitor(focusedMonitor).ManagedWindows.Count();
+            return (nWindows > 0 ? monitorWidth / nWindows : monitorWidth) - OtherWidgetOffset;
+        }
+
+        private string getTitleString(string windowTitle)
+        {
+            return $"|{windowTitle}";
         }
 
         private void RefreshAddRemove(IWindow window, IWorkspace workspace)

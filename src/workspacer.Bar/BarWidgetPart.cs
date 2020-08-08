@@ -13,5 +13,6 @@ namespace workspacer.Bar
         public Color BackgroundColor { get; set; }
         public Action PartClicked { get; set; }
         public string FontName { get; set; }
+        public int MaxWidth { get; set; }
     }
 }
