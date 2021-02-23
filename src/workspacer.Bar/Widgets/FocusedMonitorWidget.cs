@@ -14,7 +14,7 @@ namespace workspacer.Bar.Widgets
         {
             if (Context.MonitorContainer.FocusedMonitor == Context.Monitor)
             {
-                return Parts(Part("**********", fontname: FontName));
+                return Parts(Part("***", fontname: FontName));
             } else
             {
                 return Parts(Part("", fontname: FontName));
