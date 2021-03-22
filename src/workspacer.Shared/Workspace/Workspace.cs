@@ -164,6 +164,11 @@ namespace workspacer
             DoLayout();
         }
 
+        public void FocusWindow(IWindow window)
+        {
+            window.ForceFocus();
+        }
+
         public void FocusLastFocusedWindow()
         {
             if (_lastFocused != null)
